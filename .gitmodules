@@ -1,0 +1,3 @@
+[submodule "meta-app"]
+	path = meta-app
+	url = git@github.com:johannesneitzel/meta-app.git
