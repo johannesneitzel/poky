@@ -1,0 +1,51 @@
+Add U-Boot environment variables for TFTP-based firmware updates.
+Run 'run do_update' at the U-Boot prompt to download a kernel and
+rootfs image from the configured TFTP server to RAM.
+
+The serverip, ipaddr, and netmask are substituted at Yocto build time
+from UBOOT_TFTP_SERVER_IP, UBOOT_BOARD_IP, and UBOOT_BOARD_NETMASK.
+
+To complete the update after download, override the write stubs via
+'setenv' and 'saveenv' at the U-Boot prompt before running do_update:
+
+  For QEMU virtio block device (example — adjust LBA and count for your layout):
+    => setenv update_write_kernel 'virtio write ${kernel_addr_r} 0x800 0x2000'
+    => setenv update_write_rootfs 'virtio write ${ramdisk_addr_r} 0x3000 0x10000'
+
+  For eMMC/SD (example):
+    => setenv update_write_kernel 'mmc write ${kernel_addr_r} 0x800 0x2000'
+    => setenv update_write_rootfs 'mmc write ${ramdisk_addr_r} 0x3000 0x10000'
+
+  Then save and trigger:
+    => saveenv
+    => run do_update
+
+Upstream-Status: Inappropriate [custom OTA integration]
+---
+ include/configs/qemu-arm.h | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/include/configs/qemu-arm.h b/include/configs/qemu-arm.h
+index 1287fd1671..aaaaaaaaa0 100644
+--- a/include/configs/qemu-arm.h
++++ b/include/configs/qemu-arm.h
+@@ -37,7 +37,18 @@
+ 	"pxefile_addr_r=0x40300000\0" \
+ 	"kernel_addr_r=0x40400000\0" \
+ 	"ramdisk_addr_r=0x44000000\0" \
+-	BOOTENV
++	"serverip=@TFTP_SERVER_IP@\0" \
++	"ipaddr=@BOARD_IP@\0" \
++	"netmask=@BOARD_NETMASK@\0" \
++	"update_kernel_file=Image\0" \
++	"update_rootfs_file=rootfs.ext4.gz\0" \
++	"update_tftp_kernel=tftp ${kernel_addr_r} ${serverip}:${update_kernel_file}\0" \
++	"update_tftp_rootfs=tftp ${ramdisk_addr_r} ${serverip}:${update_rootfs_file}\0" \
++	"update_write_kernel=echo Kernel at ${kernel_addr_r} - set update_write_kernel\0" \
++	"update_write_rootfs=echo Rootfs at ${ramdisk_addr_r} - set update_write_rootfs\0" \
++	"do_update=run update_tftp_kernel && run update_write_kernel && run update_tftp_rootfs && run update_write_rootfs && echo === Firmware update complete ===\0" \
++	"bootcmd=if test \"${do_update_pending}\" = \"1\"; then setenv do_update_pending 0; saveenv; run do_update; fi; run distro_bootcmd\0" \
++	BOOTENV
+
+ #define CONFIG_SYS_CBSIZE 512
+

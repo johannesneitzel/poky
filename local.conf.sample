@@ -286,4 +286,4 @@ DL_DIR     = "/home/tp/dev/yocto-shared/downloads"
 
 IMAGE_INSTALL:append = " kbd"
 IMAGE_INSTALL:append = " hello-world"
-#IMAGE_INSTALL:append = " hello-world-test"
+IMAGE_INSTALL:append = " hello-world-test"
