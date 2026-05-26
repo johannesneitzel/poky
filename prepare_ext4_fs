@@ -1,0 +1,12 @@
+sudo umount /mnt/rootfs
+sudo mkdir /mnt/rootfs
+dd if=/dev/zero bs=1M count=32 >> build/tmp/deploy/images/qemuarm64/core-image-minimal-qemuarm64-20260517133148.rootfs.ext4
+e2fsck -f build/tmp/deploy/images/qemuarm64/core-image-minimal-qemuarm64-20260517133148.rootfs.ext4
+resize2fs build/tmp/deploy/images/qemuarm64/core-image-minimal-qemuarm64-20260517133148.rootfs.ext4
+
+sudo mount -o loop build/tmp/deploy/images/qemuarm64/core-image-minimal-qemuarm64-20260517133148.rootfs.ext4 /mnt/rootfs
+
+sudo mkdir -p /mnt/rootfs/boot
+sudo cp build/tmp/deploy/images/qemuarm64/Image /mnt/rootfs/boot/
+
+sudo umount /mnt/rootfs
